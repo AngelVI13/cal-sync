@@ -1,10 +1,11 @@
 import time
 import unittest
 import subprocess
+from typing import Set
 from pprint import pprint
 from dataclasses import dataclass
 from ipdb import set_trace
-from appium import webdriver
+from selenium import webdriver
 
 @dataclass
 class MeetingInfo:
@@ -51,6 +52,69 @@ class SimpleCalculatorTests(unittest.TestCase):
     def openMeetingRequests(self):
         meetingRequestsFolder = self.driver.find_element_by_name("Meeting Requests")
         meetingRequestsFolder.click()
+        time.sleep(1)
+
+    def handleSeriesPopup(self, prev_handles: Set[str]):
+        """Handle popup that asks if to send only this occurance or series.
+        This only happens for recurring meetings.
+        """
+        # NOTE: if a popup (REMINDER or sth else) appears before this part then 
+        # the script won't be able to find the correct popup
+        new_handles = set(self.driver.window_handles)
+        handle_diff = new_handles - prev_handles
+
+        if len(handle_diff) == 0:
+            return
+
+        popup_handle, *_ = handle_diff
+        self.driver.switch_to.window(popup_handle)
+
+        try:
+            self.driver.find_element_by_name("Send the series.")
+        except:
+            pass
+        else:
+            # a popup is shown -> accept it
+            self.driver.find_element_by_name("OK").click()
+            time.sleep(0.5)
+
+    def forwardMail(self):
+        # forward email
+        msg_actions = self.driver.find_element_by_name("Message Actions")
+        other_actions = msg_actions.find_element_by_name("Other Actions")
+        other_actions.click()
+        time.sleep(0.5)
+
+        prev_handles = set(self.driver.window_handles)
+        main_window = self.driver.current_window_handle
+
+        self.driver.find_element_by_name("Forward").click()
+        time.sleep(0.5)
+
+        self.handleSeriesPopup(prev_handles)
+
+        new_handles = set(self.driver.window_handles)
+        mail_forward, *_ = new_handles - prev_handles
+        self.driver.switch_to.window(mail_forward)
+
+        to_box = self.driver.find_element_by_name("RichEdit20WPT")
+        to_box.send_keys("angel.iliev@qdevtechnologies.com")
+
+        self.driver.find_element_by_name("Send").click()
+        self.driver.switch_to.window(main_window)
+
+    def mailInfo(self, m) -> MeetingInfo:
+        m.click()
+
+        time.sleep(0.5)  # wait for elements to load
+
+        when = self.driver.find_elements_by_class_name("Change Highlighting Edit Control")[0].text
+        from_ = self.driver.find_element_by_name("From").text
+        sent = self.driver.find_element_by_name("Sent").text
+
+        new_info = MeetingInfo(from_=from_, when=when, sent_time=sent)
+        return new_info
+
 
     def test_initialize(self):
         self.driver.maximize_window()
@@ -84,21 +148,14 @@ class SimpleCalculatorTests(unittest.TestCase):
             meetings = email_box.find_elements_by_class_name("LeafRow")
             # set_trace()
 
-            clicked = 0
+            processed = 0
             for m in meetings:
                 if m.location["x"] < 100 and m.location["y"] < 100:
                     continue
 
-                m.click()
-                clicked += 1
+                processed += 1
 
-                time.sleep(0.5)  # wait for elements to load
-
-                when = self.driver.find_elements_by_class_name("Change Highlighting Edit Control")[0].text
-                from_ = self.driver.find_element_by_name("From").text
-                sent = self.driver.find_element_by_name("Sent").text
-
-                new_info = MeetingInfo(from_=from_, when=when, sent_time=sent)
+                new_info = self.mailInfo(m)
                 if new_info in set(info):
                     # the first time you encounter a duplicate -> flag to stop
                     # but keep going to make sure all potential meetings are clicked
@@ -108,13 +165,15 @@ class SimpleCalculatorTests(unittest.TestCase):
                     done = True
                     continue
 
+                self.forwardMail()
                 info.append(new_info)
+                set_trace()
 
             if done:
                 break
 
             # scroll down the page. each item ~= 1 scroll
-            for _ in range(clicked):
+            for _ in range(processed):
                 down_btn.click()
 
         pprint(info)
