@@ -184,6 +184,8 @@ class SimpleCalculatorTests(unittest.TestCase):
         info = self.already_sent
         for _ in range(20):
             meetings = email_box.find_elements_by_class_name("LeafRow")
+            if not meetings:
+                break
             # set_trace()
 
             processed = 0

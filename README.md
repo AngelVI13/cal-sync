@@ -39,3 +39,18 @@ meeting so next time the script runs it does not forward it again. In case the
 meeting forwarding is disabled, the meeting wont be forwarded and the script will
 print to the console that the meeting forwarding was not successfull.
 
+# Build the GUI
+
+All these steps must be done on windows
+
+1. Make sure to install [rsrc](https://github.com/akavel/rsrc)
+```
+go install github.com/akavel/rsrc@latest
+```
+
+2. Run the following commands
+
+```
+rsrc -manifest test.manifest -o rsrc.syso
+go build -ldflags="-H windowsgui"
+```
