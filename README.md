@@ -21,9 +21,11 @@
       requests to that folder.
     * For that new folder make sure to [disable date headers](https://answers.microsoft.com/en-us/outlook_com/forum/all/how-do-i-remove-the-date-grouping-in-the-new/e3267590-6abd-4545-b8c4-ddf9317dbbd7)
 1. Fill in the information in the config file `config.ini`.
+
     NOTE: Make sure to set `RunWinAppDriver` to `yes` if you want the script to
     start it automatically for you
 2. To run the application execute the following command: `py -3.7 outlook.py`
+
     IMPORTANT: Outlook must be running before executing the script. Also all
     other opened outlook windows must be closed (notification window, email
     composer window etc.)
