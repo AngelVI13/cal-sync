@@ -156,7 +156,7 @@ class SimpleCalculatorTests(unittest.TestCase):
 
     def test_initialize(self):
         self.driver.maximize_window()
-        # TODO: for this to work you have to create a folder 'Meeting Requests' and 
+        # NOTE: for this to work you have to create a folder 'Meeting Requests' and 
         # create a rule to move/copy all incoming meeting requests to that folder
         # then this script will look through that folder and forward those requests to an
         # email of your choice
@@ -167,7 +167,7 @@ class SimpleCalculatorTests(unittest.TestCase):
         else:
             maximizeFolder.click()
 
-        # TODO: also this requires disabling date headers in outlook for Meeting Requests folder
+        # NOTE: also this requires disabling date headers in outlook for Meeting Requests folder
         #  for easier processing of meeting requests: 
         #  https://answers.microsoft.com/en-us/outlook_com/forum/all/how-do-i-remove-the-date-grouping-in-the-new/e3267590-6abd-4545-b8c4-ddf9317dbbd7
 
@@ -179,6 +179,7 @@ class SimpleCalculatorTests(unittest.TestCase):
         except:
             # if we can't find the down button it means that there is not a lot of
             # emails -> no need to scroll down
+            down_btn = None
             done = True
         else:
             done = False
@@ -213,16 +214,12 @@ class SimpleCalculatorTests(unittest.TestCase):
                 self.syncToFile(info)
                 # set_trace()
 
-            if done:
+            if done or down_btn is None:
                 break
 
             # scroll down the page. each item ~= 1 scroll
             for _ in range(processed):
                 down_btn.click()
-
-        pprint(info)
-        print(len(info))
-        set_trace()
 
 
 if __name__ == '__main__':
