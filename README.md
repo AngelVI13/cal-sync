@@ -17,6 +17,9 @@
       quit the python interpreter by typing `quit()` and hitting enter).
     * Install python requirements by openining cmd.exe in the project directory
       and running `py -3.7 -m pip install -r requirements.txt`
+    * Create a folder in Outlook and a rule that moves all incomming meeting
+      requests to that folder.
+    * For that new folder make sure to [disable date headers](https://answers.microsoft.com/en-us/outlook_com/forum/all/how-do-i-remove-the-date-grouping-in-the-new/e3267590-6abd-4545-b8c4-ddf9317dbbd7)
 1. Fill in the information in the config file `config.ini`.
     NOTE: Make sure to set `RunWinAppDriver` to `yes` if you want the script to
     start it automatically for you
@@ -25,4 +28,11 @@
     other opened outlook windows must be closed (notification window, email
     composer window etc.)
     NOTE: While the script is running do not interact with the PC
+
+
+The script will go through each meeting request in the specified folder and
+forward them to the configured email address. The script will store any forwarded
+meeting so next time the script runs it does not forward it again. In case the
+meeting forwarding is disabled, the meeting wont be forwarded and the script will
+print to the console that the meeting forwarding was not successfull.
 

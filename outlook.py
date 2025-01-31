@@ -5,10 +5,10 @@ import subprocess
 import configparser
 from pathlib import Path
 from typing import Set, Dict
-from pprint import pprint
 from dataclasses import dataclass
-from ipdb import set_trace
+
 from selenium import webdriver
+
 
 @dataclass
 class MeetingInfo:
@@ -36,7 +36,9 @@ class SimpleCalculatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         if not (self.config_path.exists() and self.config_path.is_file()):
-            raise Exception(f"Failed to find config file: {self.config_path.absolute().as_posix()}")
+            raise Exception(
+                f"Failed to find config file: {self.config_path.absolute().as_posix()}"
+            )
 
         self.config = configparser.ConfigParser()
         self.config.read(self.config_path)
@@ -51,7 +53,7 @@ class SimpleCalculatorTests(unittest.TestCase):
         if self.history_file.exists() and self.history_file.is_file():
             s = self.history_file.read_text(encoding="utf-8")
             data = json.loads(s)
-            self.already_sent = {} 
+            self.already_sent = {}
             for info in data:
                 d = MeetingInfo.from_dict(info)
                 self.already_sent[hash(d)] = d
@@ -67,8 +69,8 @@ class SimpleCalculatorTests(unittest.TestCase):
         desired_caps = {}
         desired_caps["app"] = settings["OutlookExePath"]
         self.driver = webdriver.Remote(
-            command_executor='http://127.0.0.1:4723',
-            desired_capabilities= desired_caps)
+            command_executor="http://127.0.0.1:4723", desired_capabilities=desired_caps
+        )
         time.sleep(2)
 
     @classmethod
@@ -78,7 +80,9 @@ class SimpleCalculatorTests(unittest.TestCase):
             self.win_app_driver.terminate()
 
     def openMeetingRequests(self):
-        meetingRequestsFolder = self.driver.find_element_by_name(self.meeting_folder_name)
+        meetingRequestsFolder = self.driver.find_element_by_name(
+            self.meeting_folder_name
+        )
         meetingRequestsFolder.click()
         time.sleep(1)
 
@@ -86,7 +90,7 @@ class SimpleCalculatorTests(unittest.TestCase):
         """Handle popup that asks if to send only this occurance or series.
         This only happens for recurring meetings.
         """
-        # NOTE: if a popup (REMINDER or sth else) appears before this part then 
+        # NOTE: if a popup (REMINDER or sth else) appears before this part then
         # the script won't be able to find the correct popup
         new_handles = set(self.driver.window_handles)
         handle_diff = new_handles - prev_handles
@@ -142,7 +146,9 @@ class SimpleCalculatorTests(unittest.TestCase):
 
         time.sleep(1)  # wait for elements to load
 
-        when = self.driver.find_elements_by_class_name("Change Highlighting Edit Control")[0].text
+        when = self.driver.find_elements_by_class_name(
+            "Change Highlighting Edit Control"
+        )[0].text
         from_ = self.driver.find_element_by_name("From").text
         sent = self.driver.find_element_by_name("Sent").text
 
@@ -153,23 +159,14 @@ class SimpleCalculatorTests(unittest.TestCase):
         data = [v.to_dict() for v in info.values()]
         self.history_file.write_text(json.dumps(data), encoding="utf-8")
 
-
     def test_initialize(self):
         self.driver.maximize_window()
-        # NOTE: for this to work you have to create a folder 'Meeting Requests' and 
-        # create a rule to move/copy all incoming meeting requests to that folder
-        # then this script will look through that folder and forward those requests to an
-        # email of your choice
         try:
             maximizeFolder = self.driver.find_element_by_name("Folder Pane Minimized")
         except:
             pass
         else:
             maximizeFolder.click()
-
-        # NOTE: also this requires disabling date headers in outlook for Meeting Requests folder
-        #  for easier processing of meeting requests: 
-        #  https://answers.microsoft.com/en-us/outlook_com/forum/all/how-do-i-remove-the-date-grouping-in-the-new/e3267590-6abd-4545-b8c4-ddf9317dbbd7
 
         self.openMeetingRequests()
 
@@ -200,8 +197,8 @@ class SimpleCalculatorTests(unittest.TestCase):
                 if hash(new_info) in info:
                     # the first time you encounter a duplicate -> flag to stop
                     # but keep going to make sure all potential meetings are clicked
-                    # This solves the issue when you cant scroll to a full set of 
-                    # new meetings so the view still contains already processed meetings 
+                    # This solves the issue when you cant scroll to a full set of
+                    # new meetings so the view still contains already processed meetings
                     # and a few new ones at the bottom
                     done = True
                     continue
@@ -222,6 +219,6 @@ class SimpleCalculatorTests(unittest.TestCase):
                 down_btn.click()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(SimpleCalculatorTests)
     unittest.TextTestRunner(verbosity=2).run(suite)
