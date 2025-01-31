@@ -29,6 +29,7 @@
     IMPORTANT: Outlook must be running before executing the script. Also all
     other opened outlook windows must be closed (notification window, email
     composer window etc.)
+
     NOTE: While the script is running do not interact with the PC
 
 
