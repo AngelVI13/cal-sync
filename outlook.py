@@ -80,11 +80,16 @@ class SimpleCalculatorTests(unittest.TestCase):
             self.win_app_driver.terminate()
 
     def openMeetingRequests(self):
-        meetingRequestsFolder = self.driver.find_element_by_name(
-            self.meeting_folder_name
-        )
-        meetingRequestsFolder.click()
-        time.sleep(1)
+        folders = self.driver.find_elements_by_tag_name("TreeItem")
+        for folder in folders:
+            if not folder.text.startswith(self.meeting_folder_name):
+                continue
+
+            folder.click()
+            time.sleep(1)
+            return
+
+        assert False, f"failed to find {self.meeting_folder_name}"
 
     def handleSeriesPopup(self, prev_handles: Set[str]):
         """Handle popup that asks if to send only this occurance or series.
@@ -191,6 +196,7 @@ class SimpleCalculatorTests(unittest.TestCase):
             processed = 0
             for m in meetings:
                 if m.location["x"] < 100 and m.location["y"] < 100:
+                    print(f"invalid location for {m.text}: x={m.location['x']}, y={m.location['y']}")
                     continue
 
                 processed += 1
@@ -203,6 +209,7 @@ class SimpleCalculatorTests(unittest.TestCase):
                     # new meetings so the view still contains already processed meetings
                     # and a few new ones at the bottom
                     done = True
+                    print(f"found already processed mail/duplicate {new_info}")
                     continue
 
                 success = self.forwardMail()
